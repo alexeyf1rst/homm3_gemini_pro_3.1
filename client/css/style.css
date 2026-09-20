@@ -1,0 +1,51 @@
+/*
+ * Mobile-first styles for HMM3 Telegram Mini App.
+ * The entire game renders on a single <canvas>, so we only need
+ * basic reset and viewport-locking rules.
+ */
+
+/* === Reset === */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* === Viewport Lock ===
+ * Prevents all browser-level scrolling, zooming, and pull-to-refresh
+ * gestures that would interfere with the canvas game. */
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #1a1a2e;
+
+  /* Disable pinch-zoom and double-tap zoom on touch devices */
+  touch-action: none;
+
+  /* Remove the tap highlight rectangle on iOS/Android */
+  -webkit-tap-highlight-color: transparent;
+
+  /* Prevent accidental text selection on long-press */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* === Canvas ===
+ * Fills the entire viewport. Actual resolution is set via JS
+ * to account for devicePixelRatio (Retina displays). */
+#gameCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+/* === Telegram Mini App overrides ===
+ * Telegram injects its own CSS; these rules ensure our canvas
+ * is never shifted or padded by the Telegram WebView. */
+body.telegram-mini-app {
+  padding-top: 0 !important;
+}
