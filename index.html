@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heroes of Might and Magic III - Remake</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Times New Roman', serif;
+            background: #1a1a2e;
+            color: #d4af37;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Main Game Area */
+        #game-container {
+            flex: 1;
+            display: flex;
+            position: relative;
+            background: linear-gradient(135deg, #2c1810 0%, #1a1a2e 100%);
+        }
+
+        /* Adventure Map */
+        #adventure-map {
+            flex: 1;
+            display: grid;
+            gap: 2px;
+            padding: 20px;
+            background: #0f0f1a;
+            border: 3px solid #5c4033;
+            margin: 10px;
+            border-radius: 5px;
+        }
+
+        .hex-cell {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #228B22 0%, #006400 100%);
+            border: 2px solid #3c5c3c;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .hex-cell:hover {
+            transform: scale(1.1);
+            z-index: 10;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+        }
+
+        .hex-cell.selected {
+            border: 3px solid #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
+        }
+
+        .hex-cell.dirt {
+            background: linear-gradient(135deg, #8B4513 0%, #654321 100%);
+            border-color: #5c3a2a;
+        }
+
+        .hex-cell.grass {
+            background: linear-gradient(135deg, #228B22 0%, #006400 100%);
+            border-color: #3c5c3c;
+        }
+
+        .hex-cell.water {
+            background: linear-gradient(135deg, #4169E1 0%, #1E3A8A 100%);
+            border-color: #2a4a7c;
+        }
+
+        /* Right Panel - Hero Info */
+        #right-panel {
+            width: 300px;
+            background: linear-gradient(180deg, #2c1810 0%, #1a0f0a 100%);
+            border-left: 4px solid #5c4033;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .panel-section {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid #8b7355;
+            border-radius: 5px;
+            padding: 10px;
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .hero-portrait {
+            width: 80px;
+            height: 80px;
+            background: #3c2a1a;
+            border: 3px solid #8b7355;
+            border-radius: 5px;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(139, 115, 85, 0.3);
+        }
+
+        .stat-label {
+            color: #c9b896;
+        }
+
+        .stat-value {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        /* Army Section */
+        .army-slot {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid #5c4033;
+            border-radius: 3px;
+            margin-bottom: 5px;
+        }
+
+        .unit-icon {
+            font-size: 24px;
+            width: 30px;
+            text-align: center;
+        }
+
+        .unit-count {
+            color: #ffd700;
+            font-weight: bold;
+            flex: 1;
+            text-align: right;
+        }
+
+        /* Bottom Panel - Resources & Controls */
+        #bottom-panel {
+            height: 120px;
+            background: linear-gradient(180deg, #1a0f0a 0%, #2c1810 100%);
+            border-top: 4px solid #5c4033;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .resources {
+            display: flex;
+            gap: 20px;
+        }
+
+        .resource {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 15px;
+            border: 2px solid #8b7355;
+            border-radius: 5px;
+        }
+
+        .resource-icon {
+            font-size: 20px;
+        }
+
+        .resource-value {
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            background: linear-gradient(180deg, #8b7355 0%, #5c4033 100%);
+            color: #ffd700;
+            border: 2px solid #c9b896;
+            padding: 10px 20px;
+            font-family: 'Times New Roman', serif;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: linear-gradient(180deg, #a08865 0%, #7c5040 100%);
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-end-turn {
+            background: linear-gradient(180deg, #2e8b57 0%, #1a5c3a 100%);
+            border-color: #3cb371;
+        }
+
+        /* Hero Switcher */
+        .hero-switcher {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .hero-btn {
+            padding: 5px 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid #5c4033;
+            color: #c9b896;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: all 0.2s;
+        }
+
+        .hero-btn.active {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: #ffd700;
+            color: #ffd700;
+        }
+
+        /* Mine Indicator */
+        .mine-owned {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 12px;
+            color: #ffd700;
+        }
+
+        /* Notification */
+        #notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: #ffd700;
+            padding: 15px 30px;
+            border: 2px solid #ffd700;
+            border-radius: 5px;
+            font-size: 18px;
+            z-index: 1000;
+            display: none;
+            animation: fadeInOut 2s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            90% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+        }
+
+        /* Movement Range Highlight */
+        .in-range {
+            box-shadow: inset 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .reachable {
+            box-shadow: inset 0 0 20px rgba(0, 255, 0, 0.4);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="notification"></div>
+    
+    <div id="game-container">
+        <!-- Adventure Map -->
+        <div id="adventure-map"></div>
+        
+        <!-- Right Panel -->
+        <div id="right-panel">
+            <div class="panel-section">
+                <div class="hero-switcher" id="hero-switcher"></div>
+                <div class="hero-portrait" id="hero-portrait">🛡️</div>
+                <div class="panel-title" id="hero-name">Sir Knight</div>
+                
+                <div class="stat-row">
+                    <span class="stat-label">Attack:</span>
+                    <span class="stat-value" id="hero-attack">5</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Defense:</span>
+                    <span class="stat-value" id="hero-defense">5</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Power:</span>
+                    <span class="stat-value" id="hero-power">3</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Knowledge:</span>
+                    <span class="stat-value" id="hero-knowledge">3</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Movement:</span>
+                    <span class="stat-value" id="hero-movement">15/15</span>
+                </div>
+                
+                <div style="margin-top: 15px;">
+                    <div class="panel-title" style="font-size: 16px;">Army</div>
+                    <div id="army-container"></div>
+                </div>
+            </div>
+            
+            <div class="panel-section">
+                <div class="panel-title">Mines Owned</div>
+                <div id="mines-container"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bottom Panel -->
+    <div id="bottom-panel">
+        <div class="resources">
+            <div class="resource">
+                <span class="resource-icon">💰</span>
+                <span class="resource-value" id="gold">1000</span>
+            </div>
+            <div class="resource">
+                <span class="resource-icon">🪵</span>
+                <span class="resource-value" id="wood">5</span>
+            </div>
+            <div class="resource">
+                <span class="resource-icon">🪨</span>
+                <span class="resource-value" id="ore">5</span>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn" onclick="game.switchHero()">Switch Hero</button>
+            <button class="btn btn-end-turn" onclick="game.endTurn()">End Turn</button>
+        </div>
+    </div>
+
+    <script src="src/game.js"></script>
+</body>
+</html>
